@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poker Math Trainer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 16px;
+            border: 1px solid #334155;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            color: #60a5fa;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: #94a3b8;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            background: rgba(30, 41, 59, 0.6);
+            padding: 1rem;
+            border-radius: 12px;
+            flex-wrap: wrap;
+        }
+
+        .nav-tab {
+            padding: 0.75rem 1.5rem;
+            background: #475569;
+            border: none;
+            border-radius: 8px;
+            color: #e2e8f0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-tab:hover {
+            background: #60a5fa;
+            transform: translateY(-2px);
+        }
+
+        .nav-tab.active {
+            background: #3b82f6;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .content-section {
+            display: none;
+            background: rgba(30, 41, 59, 0.8);
+            padding: 2rem;
+            border-radius: 16px;
+            border: 1px solid #334155;
+            backdrop-filter: blur(10px);
+        }
+
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .training-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .training-area {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .scenario-card {
+            background: rgba(51, 65, 85, 0.8);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid #475569;
+        }
+
+        .scenario-card h3 {
+            color: #60a5fa;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .card-display {
+            display: flex;
+            gap: 0.5rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            background: white;
+            color: black;
+            padding: 0.5rem;
+            border-radius: 6px;
+            font-weight: bold;
+            min-width: 3rem;
+            text-align: center;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .card.spades, .card.clubs {
+            color: black;
+        }
+
+        .card.hearts, .card.diamonds {
+            color: #dc2626;
+        }
+
+        .input-group {
+            margin: 1rem 0;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #cbd5e1;
+            font-weight: 500;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            background: rgba(51, 65, 85, 0.8);
+            color: #e2e8f0;
+            font-size: 1rem;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin: 0.5rem 0.5rem 0.5rem 0;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .result-display {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .result-correct {
+            border-left-color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+            color: #6ee7b7;
+        }
+
+        .result-incorrect {
+            border-left-color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            color: #fca5a5;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        @media (max-width: 640px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .stat-card {
+            background: rgba(51, 65, 85, 0.8);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid #475569;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #60a5fa;
+        }
+
+        .stat-label {
+            color: #94a3b8;
+            margin-top: 0.5rem;
+        }
+
+        .reference-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background: rgba(51, 65, 85, 0.6);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .reference-table th,
+        .reference-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #475569;
+        }
+
+        .reference-table th {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            font-weight: 600;
+        }
+
+        .reference-table td {
+            color: #cbd5e1;
+        }
+
+        .quiz-question {
+            background: rgba(51, 65, 85, 0.8);
+            padding: 2rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+            border: 1px solid #475569;
+        }
+
+        .quiz-options {
+            display: grid;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .quiz-option {
+            background: rgba(75, 85, 99, 0.8);
+            border: 1px solid #6b7280;
+            padding: 0.75rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quiz-option:hover {
+            background: rgba(96, 165, 250, 0.2);
+            border-color: #60a5fa;
+        }
+
+        .quiz-option.selected {
+            background: rgba(59, 130, 246, 0.3);
+            border-color: #3b82f6;
+        }
+
+        .quiz-option.correct {
+            background: rgba(16, 185, 129, 0.3);
+            border-color: #10b981;
+        }
+
+        .explanation-box {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .explanation-box h3 {
+            color: #60a5fa;
+            margin-bottom: 1rem;
+        }
+
+        .explanation-box h4 {
+            color: #94a3b8;
+            margin: 1rem 0 0.5rem 0;
+            font-size: 1.1rem;
+        }
+
+        .explanation-box ul, .explanation-box ol {
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .explanation-box li {
+            margin: 0.5rem 0;
+            color: #cbd5e1;
+        }
+
+        .explanation-box p {
+            color: #e2e8f0;
+            margin: 0.5rem 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(75, 85, 99, 0.8);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🃏 Poker Math Trainer</h1>
+            <p>Master the mathematical foundations of poker through interactive practice</p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showSection('outs-equity')">Outs & Equity</button>
+            <button class="nav-tab" onclick="showSection('pot-odds')">Pot Odds</button>
+            <button class="nav-tab" onclick="showSection('expected-value')">Expected Value</button>
+            <button class="nav-tab" onclick="showSection('quiz')">Quick Quiz</button>
+            <button class="nav-tab" onclick="showSection('reference')">Reference</button>
+        </div>
+
+        <!-- Outs & Equity Section -->
+        <div id="outs-equity" class="content-section active">
+            <h2>Outs & Equity Training</h2>
+            <p>Practice counting outs and converting them to equity percentages using the Rule of 4 and 2.</p>
+            
+            <div class="explanation-box">
+                <h3>📚 What are Outs and Equity?</h3>
+                <p><strong>Outs:</strong> Cards remaining in the deck that will improve your hand to (likely) the winning hand.</p>
+                <p><strong>Equity:</strong> Your percentage chance of winning the pot if the hand goes to showdown.</p>
+                <p><strong>Rule of 4 and 2:</strong> Quick way to estimate equity - multiply outs by 4 (after flop) or by 2 (after turn).</p>
+                
+                <h4>Common Drawing Hands:</h4>
+                <ul>
+                    <li><strong>Flush Draw:</strong> You have 4 cards of same suit, need 1 more = 9 outs</li>
+                    <li><strong>Open-Ended Straight Draw:</strong> Need a card on either end = 8 outs</li>
+                    <li><strong>Gutshot (Inside Straight):</strong> Need a card in the middle = 4 outs</li>
+                    <li><strong>Pocket Pair to Set:</strong> Need one of your two remaining cards = 2 outs</li>
+                    <li><strong>Two Overcards:</strong> Cards higher than the board = 6 outs</li>
+                </ul>
+            </div>
+            
+            <div class="training-area">
+                <div class="scenario-card">
+                    <h3>Current Scenario</h3>
+                    <div id="scenario-description"></div>
+                    <div class="card-display" id="hole-cards"></div>
+                    <div class="card-display" id="board-cards"></div>
+                    
+                    <div class="input-group">
+                        <label for="outs-input">How many outs do you have?</label>
+                        <input type="number" id="outs-input" min="0" max="47" placeholder="Enter number of outs">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="equity-input">What's your equity? (Use Rule of 4 & 2)</label>
+                        <input type="number" id="equity-input" min="0" max="100" placeholder="Enter equity %">
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="checkOutsEquity()">Check Answer</button>
+                    <button class="btn btn-secondary" onclick="generateOutsScenario()">New Scenario</button>
+                </div>
+                
+                <div class="scenario-card">
+                    <h3>Your Progress</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number" id="outs-correct">0</div>
+                            <div class="stat-label">Correct</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="outs-total">0</div>
+                            <div class="stat-label">Total</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="outs-accuracy">0%</div>
+                            <div class="stat-label">Accuracy</div>
+                        </div>
+                    </div>
+                    <div id="outs-result" class="result-display" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pot Odds Section -->
+        <div id="pot-odds" class="content-section">
+            <h2>Pot Odds Training</h2>
+            <p>Learn to calculate pot odds and determine the profitability of calls.</p>
+            
+            <div class="explanation-box">
+                <h3>💰 What are Pot Odds?</h3>
+                <p><strong>Pot Odds:</strong> The ratio of the current pot size to the cost of a call. This tells you the "price" you're getting to see the next card.</p>
+                
+                <h4>How to Calculate:</h4>
+                <ol>
+                    <li><strong>Total Pot:</strong> Original pot + opponent's bet</li>
+                    <li><strong>Your Call:</strong> Amount you need to pay</li>
+                    <li><strong>Pot Odds Ratio:</strong> Total Pot : Your Call</li>
+                    <li><strong>Required Equity:</strong> Your Call ÷ (Total Pot + Your Call)</li>
+                </ol>
+                
+                <h4>The Decision Rule:</h4>
+                <p><strong>Call if:</strong> Your hand's equity > Required equity</p>
+                <p><strong>Fold if:</strong> Your hand's equity < Required equity</p>
+                
+                <h4>Example:</h4>
+                <p>Pot = $100, Opponent bets $50, You need to call $50</p>
+                <p>Pot Odds = $150 : $50 = 3:1</p>
+                <p>Required Equity = $50 ÷ $200 = 25%</p>
+                <p>If your hand has more than 25% chance to win, call!</p>
+            </div>
+            
+            <div class="training-area">
+                <div class="scenario-card">
+                    <h3>Pot Odds Scenario</h3>
+                    <div id="pot-scenario"></div>
+                    
+                    <div class="input-group">
+                        <label for="pot-odds-ratio">Pot Odds (as ratio X:1)</label>
+                        <input type="number" id="pot-odds-ratio" step="0.1" placeholder="e.g., 3.5">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="required-equity">Required Equity (%)</label>
+                        <input type="number" id="required-equity" step="0.1" placeholder="e.g., 25.5">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="call-decision">Should you call with 35% equity?</label>
+                        <select id="call-decision">
+                            <option value="">Choose...</option>
+                            <option value="call">Call (Profitable)</option>
+                            <option value="fold">Fold (Unprofitable)</option>
+                        </select>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="checkPotOdds()">Check Answer</button>
+                    <button class="btn btn-secondary" onclick="generatePotOddsScenario()">New Scenario</button>
+                </div>
+                
+                <div class="scenario-card">
+                    <h3>Your Progress</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number" id="pot-correct">0</div>
+                            <div class="stat-label">Correct</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="pot-total">0</div>
+                            <div class="stat-label">Total</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="pot-accuracy">0%</div>
+                            <div class="stat-label">Accuracy</div>
+                        </div>
+                    </div>
+                    <div id="pot-result" class="result-display" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Expected Value Section -->
+        <div id="expected-value" class="content-section">
+            <h2>Expected Value Training</h2>
+            <p>Practice calculating EV for calls and bluffs to understand long-term profitability.</p>
+            
+            <div class="explanation-box">
+                <h3>📊 What is Expected Value (EV)?</h3>
+                <p><strong>Expected Value:</strong> The average amount of money you can expect to win or lose from a specific play if repeated many times.</p>
+                
+                <h4>EV for Calling with a Draw:</h4>
+                <p><strong>Formula:</strong> (Equity × Pot You Win) - ((1 - Equity) × Call Amount)</p>
+                <p><strong>Example:</strong> You have 30% equity, pot is $150, call is $50</p>
+                <p>EV = (0.30 × $150) - (0.70 × $50) = $45 - $35 = +$10</p>
+                <p>This means on average, you'll win $10 each time you make this call.</p>
+                
+                <h4>EV for Bluffing:</h4>
+                <p><strong>Formula:</strong> (Fold % × Pot Won) - (Call % × Bluff Lost)</p>
+                <p><strong>Example:</strong> 40% fold rate, $100 pot, $50 bluff</p>
+                <p>EV = (0.40 × $100) - (0.60 × $50) = $40 - $30 = +$10</p>
+                
+                <h4>Decision Making:</h4>
+                <p><strong>+EV (Positive):</strong> Profitable long-term - DO IT!</p>
+                <p><strong>-EV (Negative):</strong> Losing long-term - AVOID!</p>
+                <p><strong>Zero EV:</strong> Break-even - indifferent</p>
+            </div>
+            
+            <div class="training-area">
+                <div class="scenario-card">
+                    <h3>EV Scenario</h3>
+                    <div id="ev-scenario"></div>
+                    
+                    <div class="input-group">
+                        <label for="ev-calculation">Expected Value ($)</label>
+                        <input type="number" id="ev-calculation" step="0.01" placeholder="Enter EV (can be negative)">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="ev-decision">Decision</label>
+                        <select id="ev-decision">
+                            <option value="">Choose...</option>
+                            <option value="positive">+EV (Profitable)</option>
+                            <option value="negative">-EV (Unprofitable)</option>
+                        </select>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="checkEV()">Check Answer</button>
+                    <button class="btn btn-secondary" onclick="generateEVScenario()">New Scenario</button>
+                </div>
+                
+                <div class="scenario-card">
+                    <h3>Your Progress</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number" id="ev-correct">0</div>
+                            <div class="stat-label">Correct</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="ev-total">0</div>
+                            <div class="stat-label">Total</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="ev-accuracy">0%</div>
+                            <div class="stat-label">Accuracy</div>
+                        </div>
+                    </div>
+                    <div id="ev-result" class="result-display" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz Section -->
+        <div id="quiz" class="content-section">
+            <h2>Quick Quiz</h2>
+            <p>Test your poker math knowledge with randomized questions.</p>
+            
+            <div class="explanation-box">
+                <h3>🧠 Quiz Guide</h3>
+                <p>This quiz tests your understanding of key poker math concepts:</p>
+                <ul>
+                    <li><strong>Outs & Equity:</strong> Counting improvement cards and calculating win probability</li>
+                    <li><strong>Pot Odds:</strong> Determining if a call is profitable based on pot size vs. call size</li>
+                    <li><strong>Preflop Probabilities:</strong> Likelihood of being dealt specific hands</li>
+                    <li><strong>Hand Matchups:</strong> How different hands perform against each other</li>
+                    <li><strong>Bluff Math:</strong> Calculating break-even points for bluffs</li>
+                </ul>
+                <p><strong>Tip:</strong> Take your time and think through each calculation step by step!</p>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" id="quiz-progress" style="width: 0%"></div>
+            </div>
+            
+            <div id="quiz-container"></div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="quiz-score">0</div>
+                    <div class="stat-label">Score</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="quiz-question-num">0</div>
+                    <div class="stat-label">Question</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="quiz-streak">0</div>
+                    <div class="stat-label">Streak</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reference Section -->
+        <div id="reference" class="content-section">
+            <h2>Quick Reference</h2>
+            
+            <h3>Outs to Equity Conversion</h3>
+            <table class="reference-table">
+                <thead>
+                    <tr>
+                        <th>Outs</th>
+                        <th>Turn & River</th>
+                        <th>River Only</th>
+                        <th>Common Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>1</td><td>4.3%</td><td>2.2%</td><td>Runner-runner draw</td></tr>
+                    <tr><td>2</td><td>8.4%</td><td>4.3%</td><td>Pocket pair to set</td></tr>
+                    <tr><td>4</td><td>16.5%</td><td>8.7%</td><td>Gutshot straight</td></tr>
+                    <tr><td>6</td><td>24.1%</td><td>13.0%</td><td>Two overcards</td></tr>
+                    <tr><td>8</td><td>31.5%</td><td>17.4%</td><td>Open-ended straight</td></tr>
+                    <tr><td>9</td><td>35.0%</td><td>19.6%</td><td>Flush draw</td></tr>
+                    <tr><td>12</td><td>45.0%</td><td>26.1%</td><td>Flush + pair</td></tr>
+                    <tr><td>15</td><td>54.1%</td><td>32.6%</td><td>Flush + straight draw</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Pot Odds Quick Reference</h3>
+            <table class="reference-table">
+                <thead>
+                    <tr>
+                        <th>Bet Size</th>
+                        <th>Pot Odds</th>
+                        <th>Required Equity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>1/4 Pot</td><td>5:1</td><td>16.7%</td></tr>
+                    <tr><td>1/3 Pot</td><td>4:1</td><td>20.0%</td></tr>
+                    <tr><td>1/2 Pot</td><td>3:1</td><td>25.0%</td></tr>
+                    <tr><td>2/3 Pot</td><td>2.5:1</td><td>28.6%</td></tr>
+                    <tr><td>3/4 Pot</td><td>2.33:1</td><td>30.0%</td></tr>
+                    <tr><td>Full Pot</td><td>2:1</td><td>33.3%</td></tr>
+                    <tr><td>2x Pot</td><td>1.5:1</td><td>40.0%</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Key Formulas</h3>
+            <div style="background: rgba(51, 65, 85, 0.8); padding: 1.5rem; border-radius: 8px; margin: 1rem 0;">
+                <p><strong>Rule of 4 and 2:</strong> Multiply outs by 4 (flop) or 2 (turn) for approximate equity</p>
+                <p><strong>Pot Odds:</strong> (Pot Size + Bet) : Bet to Call</p>
+                <p><strong>Required Equity:</strong> Call Amount / (Pot + Call Amount)</p>
+                <p><strong>EV of Call:</strong> (Equity × Pot Win) - ((1-Equity) × Call Amount)</p>
+                <p><strong>Break-even Bluff:</strong> Risk / (Risk + Reward)</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables for tracking progress
+        let stats = {
+            outs: { correct: 0, total: 0 },
+            pot: { correct: 0, total: 0 },
+            ev: { correct: 0, total: 0 },
+            quiz: { score: 0, question: 0, streak: 0, total: 10 }
+        };
+
+        // Card and scenario data
+        const suits = ['♠', '♥', '♦', '♣'];
+        const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'];
+        
+        let currentScenario = {};
+        let currentQuiz = {};
+
+        // Navigation functions
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+            
+            // Initialize section if needed
+            if (sectionId === 'outs-equity' && stats.outs.total === 0) {
+                generateOutsScenario();
+            } else if (sectionId === 'pot-odds' && stats.pot.total === 0) {
+                generatePotOddsScenario();
+            } else if (sectionId === 'expected-value' && stats.ev.total === 0) {
+                generateEVScenario();
+            } else if (sectionId === 'quiz') {
+                startQuiz();
+            }
+        }
+
+        // Utility functions
+        function createCard(rank, suit) {
+            const suitClass = (suit === '♠' || suit === '♣') ? 'spades' : 'hearts';
+            return `<div class="card ${suitClass}">${rank}${suit}</div>`;
+        }
+
+        function getRandomCard() {
+            return {
+                rank: ranks[Math.floor(Math.random() * ranks.length)],
+                suit: suits[Math.floor(Math.random() * suits.length)]
+            };
+        }
+
+        function updateStats(section) {
+            const accuracy = stats[section].total > 0 ? 
+                Math.round((stats[section].correct / stats[section].total) * 100) : 0;
+            
+            document.getElementById(`${section}-correct`).textContent = stats[section].correct;
+            document.getElementById(`${section}-total`).textContent = stats[section].total;
+            document.getElementById(`${section}-accuracy`).textContent = accuracy + '%';
+        }
+
+        // Outs & Equity Training
+        function generateOutsScenario() {
+            const scenarios = [
+                {
+                    type: 'flush',
+                    description: 'You have a flush draw',
+                    explanation: 'You have 4 cards of the same suit and need 1 more to complete your flush. There are 13 cards in each suit, you can see 4, so 9 remain.',
+                    hole: [{ rank: 'A', suit: '♦' }, { rank: 'K', suit: '♦' }],
+                    board: [{ rank: '7', suit: '♦' }, { rank: '3', suit: '♦' }, { rank: 'J', suit: '♠' }],
+                    outs: 9,
+                    street: 'flop'
+                },
+                {
+                    type: 'oesd',
+                    description: 'You have an open-ended straight draw',
+                    explanation: 'You can complete your straight with cards on either end. Here you need any 6 or any Jack (4 + 4 = 8 outs).',
+                    hole: [{ rank: 'T', suit: '♠' }, { rank: '9', suit: '♥' }],
+                    board: [{ rank: '8', suit: '♣' }, { rank: '7', suit: '♦' }, { rank: '2', suit: '♠' }],
+                    outs: 8,
+                    street: 'flop'
+                },
+                {
+                    type: 'gutshot',
+                    description: 'You have a gutshot straight draw',
+                    explanation: 'You need a card in the middle of your straight. Only an 8 completes your straight (4 eights in the deck).',
+                    hole: [{ rank: 'T', suit: '♠' }, { rank: '9', suit: '♥' }],
+                    board: [{ rank: '6', suit: '♣' }, { rank: '7', suit: '♦' }, { rank: 'K', suit: '♠' }],
+                    outs: 4,
+                    street: 'flop'
+                },
+                {
+                    type: 'pair-to-set',
+                    description: 'You have a pocket pair and want to make a set',
+                    explanation: 'You have two 7s, and need one of the remaining two 7s in the deck to make three of a kind (a "set").',
+                    hole: [{ rank: '7', suit: '♠' }, { rank: '7', suit: '♥' }],
+                    board: [{ rank: 'A', suit: '♣' }, { rank: 'K', suit: '♦' }, { rank: '3', suit: '♠' }],
+                    outs: 2,
+                    street: 'flop'
+                },
+                {
+                    type: 'overcards',
+                    description: 'You have two overcards',
+                    explanation: 'Both your cards are higher than any card on the board. Hitting either card gives you top pair (3 Aces + 3 Kings = 6 outs).',
+                    hole: [{ rank: 'A', suit: '♠' }, { rank: 'K', suit: '♥' }],
+                    board: [{ rank: 'T', suit: '♣' }, { rank: '6', suit: '♦' }, { rank: '3', suit: '♠' }],
+                    outs: 6,
+                    street: 'flop'
+                },
+                {
+                    type: 'combo-draw',
+                    description: 'You have a flush draw + gutshot',
+                    explanation: 'You have 9 flush outs (any diamond) + 3 clean straight outs (any 5 except 5♦ which is already counted). Total: 9 + 3 = 12 outs.',
+                    hole: [{ rank: '9', suit: '♦' }, { rank: '8', suit: '♦' }],
+                    board: [{ rank: '7', suit: '♦' }, { rank: '6', suit: '♦' }, { rank: 'K', suit: '♠' }],
+                    outs: 12,
+                    street: 'flop'
+                }
+            ];
+
+            const scenario = scenarios[Math.floor(Math.random() * scenarios.length)];
+            currentScenario = scenario;
+
+            document.getElementById('scenario-description').innerHTML = `
+                <p><strong>${scenario.description}</strong></p>
+                <p style="color: #94a3b8; font-style: italic; margin-top: 0.5rem;">${scenario.explanation}</p>
+            `;
+            
+            const holeHtml = scenario.hole.map(card => createCard(card.rank, card.suit)).join('');
+            const boardHtml = scenario.board.map(card => createCard(card.rank, card.suit)).join('');
+            
+            document.getElementById('hole-cards').innerHTML = '<strong>Your Cards:</strong> ' + holeHtml;
+            document.getElementById('board-cards').innerHTML = '<strong>Board:</strong> ' + boardHtml;
+            
+            // Clear inputs
+            document.getElementById('outs-input').value = '';
+            document.getElementById('equity-input').value = '';
+            document.getElementById('outs-result').style.display = 'none';
+        }
+
+        function checkOutsEquity() {
+            const outsInput = parseInt(document.getElementById('outs-input').value);
+            const equityInput = parseInt(document.getElementById('equity-input').value);
+            
+            if (isNaN(outsInput) || isNaN(equityInput)) {
+                alert('Please enter both outs and equity values');
+                return;
+            }
+            
+            stats.outs.total++;
+            
+            const correctOuts = currentScenario.outs;
+            const correctEquity = currentScenario.street === 'flop' ? correctOuts * 4 : correctOuts * 2;
+            
+            const outsCorrect = Math.abs(outsInput - correctOuts) <= 1; // Allow 1 out tolerance
+            const equityCorrect = Math.abs(equityInput - correctEquity) <= 3; // Allow 3% tolerance
+            
+            const resultDiv = document.getElementById('outs-result');
+            resultDiv.style.display = 'block';
+            
+            if (outsCorrect && equityCorrect) {
+                stats.outs.correct++;
+                resultDiv.className = 'result-display result-correct';
+                resultDiv.innerHTML = `
+                    <h4>✅ Correct!</h4>
+                    <p><strong>Outs:</strong> ${correctOuts} (you said ${outsInput})</p>
+                    <p><strong>Equity:</strong> ${correctEquity}% (you said ${equityInput}%)</p>
+                    <p>Great job! Using the Rule of ${currentScenario.street === 'flop' ? '4' : '2'}: ${correctOuts} × ${currentScenario.street === 'flop' ? '4' : '2'} = ${correctEquity}%</p>
+                `;
+            } else {
+                resultDiv.className = 'result-display result-incorrect';
+                resultDiv.innerHTML = `
+                    <h4>❌ Not quite right</h4>
+                    <p><strong>Correct Outs:</strong> ${correctOuts} (you said ${outsInput})</p>
+                    <p><strong>Correct Equity:</strong> ${correctEquity}% (you said ${equityInput}%)</p>
+                    <p>Using the Rule of ${currentScenario.street === 'flop' ? '4' : '2'}: ${correctOuts} × ${currentScenario.street === 'flop' ? '4' : '2'} = ${correctEquity}%</p>
+                `;
+            }
+            
+            updateStats('outs');
+        }
+
+        // Pot Odds Training
+        function generatePotOddsScenario() {
+            const potSizes = [50, 75, 100, 150, 200, 300];
+            const betSizes = [0.25, 0.33, 0.5, 0.67, 0.75, 1.0, 1.5, 2.0];
+            
+            const pot = potSizes[Math.floor(Math.random() * potSizes.length)];
+            const betMultiplier = betSizes[Math.floor(Math.random() * betSizes.length)];
+            const bet = Math.round(pot * betMultiplier);
+            
+            currentScenario = {
+                pot: pot,
+                bet: bet,
+                totalPot: pot + bet,
+                potOdds: (pot + bet) / bet,
+                requiredEquity: (bet / (pot + bet + bet)) * 100
+            };
+            
+            document.getElementById('pot-scenario').innerHTML = `
+                <p><strong>Situation:</strong> The pot is ${pot}. Your opponent bets ${bet}.</p>
+                <p>You need to call ${bet} to continue.</p>
+            `;
+            
+            // Clear inputs
+            document.getElementById('pot-odds-ratio').value = '';
+            document.getElementById('required-equity').value = '';
+            document.getElementById('call-decision').value = '';
+            document.getElementById('pot-result').style.display = 'none';
+        }
+
+        function checkPotOdds() {
+            const potOddsInput = parseFloat(document.getElementById('pot-odds-ratio').value);
+            const requiredEquityInput = parseFloat(document.getElementById('required-equity').value);
+            const callDecision = document.getElementById('call-decision').value;
+            
+            if (isNaN(potOddsInput) || isNaN(requiredEquityInput) || !callDecision) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            stats.pot.total++;
+            
+            const correctPotOdds = currentScenario.potOdds;
+            const correctRequiredEquity = currentScenario.requiredEquity;
+            const correctDecision = 35 > correctRequiredEquity ? 'call' : 'fold';
+            
+            const potOddsCorrect = Math.abs(potOddsInput - correctPotOdds) <= 0.2;
+            const equityCorrect = Math.abs(requiredEquityInput - correctRequiredEquity) <= 2;
+            const decisionCorrect = callDecision === correctDecision;
+            
+            const resultDiv = document.getElementById('pot-result');
+            resultDiv.style.display = 'block';
+            
+            if (potOddsCorrect && equityCorrect && decisionCorrect) {
+                stats.pot.correct++;
+                resultDiv.className = 'result-display result-correct';
+                resultDiv.innerHTML = `
+                    <h4>✅ Excellent!</h4>
+                    <p><strong>Pot Odds:</strong> ${correctPotOdds.toFixed(1)}:1 (you said ${potOddsInput}:1)</p>
+                    <p><strong>Required Equity:</strong> ${correctRequiredEquity.toFixed(1)}% (you said ${requiredEquityInput}%)</p>
+                    <p><strong>Decision:</strong> ${correctDecision} (you said ${callDecision})</p>
+                    <p>With 35% equity vs ${correctRequiredEquity.toFixed(1)}% required, this is a ${correctDecision}!</p>
+                `;
+            } else {
+                resultDiv.className = 'result-display result-incorrect';
+                resultDiv.innerHTML = `
+                    <h4>❌ Review needed</h4>
+                    <p><strong>Correct Pot Odds:</strong> ${correctPotOdds.toFixed(1)}:1 (you said ${potOddsInput}:1)</p>
+                    <p><strong>Correct Required Equity:</strong> ${correctRequiredEquity.toFixed(1)}% (you said ${requiredEquityInput}%)</p>
+                    <p><strong>Correct Decision:</strong> ${correctDecision} (you said ${callDecision})</p>
+                    <p>Formula: Required Equity = Call / (Pot + Call) = ${currentScenario.bet} / ${currentScenario.totalPot + currentScenario.bet} = ${correctRequiredEquity.toFixed(1)}%</p>
+                `;
+            }
+            
+            updateStats('pot');
+        }
+
+        // Expected Value Training
+        function generateEVScenario() {
+            const scenarios = [
+                {
+                    type: 'call-with-draw',
+                    description: 'EV of calling with a draw',
+                    setup: () => {
+                        const equity = [0.15, 0.20, 0.25, 0.30, 0.35, 0.40][Math.floor(Math.random() * 6)];
+                        const pot = [80, 100, 120, 150, 200][Math.floor(Math.random() * 5)];
+                        const bet = [20, 30, 40, 50, 60][Math.floor(Math.random() * 5)];
+                        const totalPot = pot + bet;
+                        const ev = (equity * totalPot) - ((1 - equity) * bet);
+                        
+                        return {
+                            text: `You have ${(equity * 100)}% equity. The pot is ${pot}, opponent bets ${bet}. Calculate the EV of calling.`,
+                            correctEV: ev,
+                            equity: equity,
+                            pot: pot,
+                            bet: bet
+                        };
+                    }
+                },
+                {
+                    type: 'bluff-ev',
+                    description: 'EV of a bluff',
+                    setup: () => {
+                        const foldPercent = [0.3, 0.4, 0.5, 0.6, 0.7][Math.floor(Math.random() * 5)];
+                        const pot = [60, 80, 100, 120, 150][Math.floor(Math.random() * 5)];
+                        const bluff = [30, 40, 50, 60, 75][Math.floor(Math.random() * 5)];
+                        const ev = (foldPercent * pot) - ((1 - foldPercent) * bluff);
+                        
+                        return {
+                            text: `You're considering a ${bluff} bluff into a ${pot} pot. You estimate opponent folds ${(foldPercent * 100)}% of the time. Calculate the EV.`,
+                            correctEV: ev,
+                            foldPercent: foldPercent,
+                            pot: pot,
+                            bluff: bluff
+                        };
+                    }
+                }
+            ];
+            
+            const scenarioType = scenarios[Math.floor(Math.random() * scenarios.length)];
+            currentScenario = scenarioType.setup();
+            
+            document.getElementById('ev-scenario').innerHTML = `
+                <p><strong>Scenario:</strong> ${currentScenario.text}</p>
+            `;
+            
+            // Clear inputs
+            document.getElementById('ev-calculation').value = '';
+            document.getElementById('ev-decision').value = '';
+            document.getElementById('ev-result').style.display = 'none';
+        }
+
+        function checkEV() {
+            const evInput = parseFloat(document.getElementById('ev-calculation').value);
+            const decisionInput = document.getElementById('ev-decision').value;
+            
+            if (isNaN(evInput) || !decisionInput) {
+                alert('Please enter both EV and decision');
+                return;
+            }
+            
+            stats.ev.total++;
+            
+            const correctEV = currentScenario.correctEV;
+            const correctDecision = correctEV > 0 ? 'positive' : 'negative';
+            
+            const evCorrect = Math.abs(evInput - correctEV) <= Math.abs(correctEV * 0.1); // 10% tolerance
+            const decisionCorrect = decisionInput === correctDecision;
+            
+            const resultDiv = document.getElementById('ev-result');
+            resultDiv.style.display = 'block';
+            
+            if (evCorrect && decisionCorrect) {
+                stats.ev.correct++;
+                resultDiv.className = 'result-display result-correct';
+                resultDiv.innerHTML = `
+                    <h4>✅ Correct!</h4>
+                    <p><strong>Expected Value:</strong> ${correctEV.toFixed(2)} (you said ${evInput.toFixed(2)})</p>
+                    <p><strong>Decision:</strong> This is ${correctDecision} EV, so it's ${correctEV > 0 ? 'profitable' : 'unprofitable'} long-term.</p>
+                `;
+            } else {
+                resultDiv.className = 'result-display result-incorrect';
+                resultDiv.innerHTML = `
+                    <h4>❌ Not quite</h4>
+                    <p><strong>Correct EV:</strong> ${correctEV.toFixed(2)} (you said ${evInput.toFixed(2)})</p>
+                    <p><strong>Correct Decision:</strong> ${correctDecision} EV</p>
+                    <p>Remember: EV = (Probability of Win × Amount Won) - (Probability of Loss × Amount Lost)</p>
+                `;
+            }
+            
+            updateStats('ev');
+        }
+
+        // Quiz Section
+        function startQuiz() {
+            stats.quiz = { score: 0, question: 1, streak: 0, total: 10 };
+            generateQuizQuestion();
+            updateQuizStats();
+        }
+
+        function generateQuizQuestion() {
+            const questions = [
+                {
+                    question: "You have 9 outs on the flop. Using the Rule of 4, what's your approximate equity?",
+                    explanation: "Rule of 4: On the flop (2 cards to come), multiply outs by 4 to get approximate equity percentage.",
+                    options: ["32%", "36%", "40%", "44%"],
+                    correct: 1,
+                    detailedExplanation: "9 outs × 4 = 36% equity on the flop. The Rule of 4 is used when there are 2 cards to come (flop to river)."
+                },
+                {
+                    question: "The pot is $100, opponent bets $50. What are the pot odds?",
+                    explanation: "Pot odds = (Original pot + Opponent's bet) : Your call amount",
+                    options: ["2:1", "3:1", "2.5:1", "1.5:1"],
+                    correct: 1,
+                    detailedExplanation: "Total pot after bet = $100 + $50 = $150. You call $50. Pot odds = $150 : $50 = 3:1"
+                },
+                {
+                    question: "What's the probability of being dealt pocket Aces?",
+                    explanation: "There are 6 ways to make AA (4 choose 2) out of 1,326 total starting hands.",
+                    options: ["0.45%", "0.75%", "1.2%", "2.1%"],
+                    correct: 0,
+                    detailedExplanation: "6 combinations of AA out of 1,326 total starting hands = 6/1,326 = 0.45% or about 1 in 221 hands"
+                },
+                {
+                    question: "You need to call $20 into a $80 pot. What equity do you need?",
+                    explanation: "Required equity = Your call ÷ (Total pot after calling)",
+                    options: ["15%", "20%", "25%", "30%"],
+                    correct: 1,
+                    detailedExplanation: "Required equity = $20 ÷ ($80 + $20) = $20 ÷ $100 = 20%"
+                },
+                {
+                    question: "Which has more outs: flush draw or open-ended straight draw?",
+                    explanation: "Count the remaining cards that complete each draw type.",
+                    options: ["Flush draw", "Straight draw", "Same amount", "Depends on suits"],
+                    correct: 0,
+                    detailedExplanation: "Flush draw has 9 outs (13 total cards in suit - 4 you can see), OESD has 8 outs (4 cards on each end)"
+                },
+                {
+                    question: "Using Rule of 2, if you have 6 outs on the turn, what's your equity?",
+                    explanation: "Rule of 2: On the turn (1 card to come), multiply outs by 2 to get approximate equity.",
+                    options: ["10%", "12%", "14%", "16%"],
+                    correct: 1,
+                    detailedExplanation: "6 outs × 2 = 12% equity with one card to come (turn to river)"
+                },
+                {
+                    question: "For a bluff to break even, if you bet $50 into $100, opponent must fold what %?",
+                    explanation: "Break-even bluff percentage = Risk ÷ (Risk + Reward)",
+                    options: ["25%", "33%", "50%", "67%"],
+                    correct: 1,
+                    detailedExplanation: "Break-even % = $50 ÷ ($50 + $100) = $50 ÷ $150 = 33.3%. If opponent folds more than 33.3%, the bluff is profitable."
+                },
+                {
+                    question: "You have AK vs 22 preflop. This is approximately:",
+                    explanation: "This is a classic preflop matchup - overcards vs pocket pair.",
+                    options: ["70-30 for AK", "Coin flip", "70-30 for 22", "60-40 for AK"],
+                    correct: 1,
+                    detailedExplanation: "AK vs any pocket pair is roughly 45-55% (slight favorite to the pair), making it essentially a coin flip or 'race'"
+                },
+                {
+                    question: "You have a gutshot straight draw. How many outs is this?",
+                    explanation: "A gutshot needs one specific rank to complete the straight.",
+                    options: ["2 outs", "4 outs", "6 outs", "8 outs"],
+                    correct: 1,
+                    detailedExplanation: "Gutshot (inside straight draw) needs one specific rank. There are 4 cards of each rank in the deck, so 4 outs."
+                },
+                {
+                    question: "If a pot is $200 and you need 25% equity to call, what's the maximum call size?",
+                    explanation: "Work backwards from required equity formula: Call ÷ (Pot + Call) = Required equity",
+                    options: ["$50", "$67", "$75", "$100"],
+                    correct: 1,
+                    detailedExplanation: "Let X = call size. Then X ÷ ($200 + X) = 0.25. Solving: X = 0.25 × ($200 + X), X = $50 + 0.25X, 0.75X = $50, X = $66.67"
+                }
+            ];
+            
+            if (stats.quiz.question > stats.quiz.total) {
+                showQuizResults();
+                return;
+            }
+            
+            const question = questions[Math.floor(Math.random() * questions.length)];
+            currentQuiz = question;
+            
+            const quizHtml = `
+                <div class="quiz-question">
+                    <h3>Question ${stats.quiz.question} of ${stats.quiz.total}</h3>
+                    <p style="font-size: 1.1rem; margin-bottom: 1rem;">${question.question}</p>
+                    <div style="background: rgba(59, 130, 246, 0.1); padding: 1rem; border-radius: 8px; margin: 1rem 0; border-left: 3px solid #3b82f6;">
+                        <p style="color: #94a3b8; font-size: 0.9rem;"><strong>💡 Hint:</strong> ${question.explanation}</p>
+                    </div>
+                    <div class="quiz-options">
+                        ${question.options.map((option, index) => 
+                            `<div class="quiz-option" onclick="selectQuizOption(${index})">${option}</div>`
+                        ).join('')}
+                    </div>
+                    <button class="btn btn-primary" onclick="submitQuizAnswer()" style="margin-top: 1rem;">Submit Answer</button>
+                </div>
+            `;
+            
+            document.getElementById('quiz-container').innerHTML = quizHtml;
+            
+            // Update progress bar
+            const progress = ((stats.quiz.question - 1) / stats.quiz.total) * 100;
+            document.getElementById('quiz-progress').style.width = progress + '%';
+        }
+
+        function selectQuizOption(index) {
+            document.querySelectorAll('.quiz-option').forEach((option, i) => {
+                option.classList.remove('selected');
+                if (i === index) option.classList.add('selected');
+            });
+            currentQuiz.selectedAnswer = index;
+        }
+
+        function submitQuizAnswer() {
+            if (currentQuiz.selectedAnswer === undefined) {
+                alert('Please select an answer');
+                return;
+            }
+            
+            const options = document.querySelectorAll('.quiz-option');
+            const correct = currentQuiz.selectedAnswer === currentQuiz.correct;
+            
+            options.forEach((option, index) => {
+                if (index === currentQuiz.correct) {
+                    option.classList.add('correct');
+                } else if (index === currentQuiz.selectedAnswer && !correct) {
+                    option.classList.add('incorrect');
+                }
+            });
+            
+            if (correct) {
+                stats.quiz.score++;
+                stats.quiz.streak++;
+            } else {
+                stats.quiz.streak = 0;
+            }
+            
+            // Show explanation
+            const explanation = `<div style="margin-top: 1rem; padding: 1rem; background: rgba(59, 130, 246, 0.1); border-radius: 8px;">
+                <strong>📖 Detailed Explanation:</strong> ${currentQuiz.detailedExplanation}
+            </div>`;
+            
+            document.querySelector('.quiz-question').innerHTML += explanation;
+            
+            setTimeout(() => {
+                stats.quiz.question++;
+                generateQuizQuestion();
+                updateQuizStats();
+            }, 3000);
+        }
+
+        function showQuizResults() {
+            const percentage = Math.round((stats.quiz.score / stats.quiz.total) * 100);
+            let grade = 'F';
+            if (percentage >= 90) grade = 'A';
+            else if (percentage >= 80) grade = 'B';
+            else if (percentage >= 70) grade = 'C';
+            else if (percentage >= 60) grade = 'D';
+            
+            document.getElementById('quiz-container').innerHTML = `
+                <div class="quiz-question">
+                    <h3>Quiz Complete!</h3>
+                    <div style="text-align: center; padding: 2rem;">
+                        <div style="font-size: 3rem; color: #60a5fa; margin-bottom: 1rem;">${grade}</div>
+                        <p style="font-size: 1.5rem; margin-bottom: 1rem;">You scored ${stats.quiz.score} out of ${stats.quiz.total}</p>
+                        <p style="color: #94a3b8;">${percentage}% correct</p>
+                        <button class="btn btn-primary" onclick="startQuiz()" style="margin-top: 2rem;">Take Quiz Again</button>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('quiz-progress').style.width = '100%';
+        }
+
+        function updateQuizStats() {
+            document.getElementById('quiz-score').textContent = stats.quiz.score;
+            document.getElementById('quiz-question-num').textContent = stats.quiz.question - 1;
+            document.getElementById('quiz-streak').textContent = stats.quiz.streak;
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            generateOutsScenario();
+        });
+    </script>
+</body>
+</html>
